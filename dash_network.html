@@ -67,5 +67,5 @@ candObjs.slice(0,10).forEach((o,i)=>{
  cl.appendChild(d);
 });
 let copen=true;document.getElementById('candhd').onclick=()=>{copen=!copen;cl.style.display=copen?'block':'none';document.querySelector('#candhd span').textContent='전파후보 Top 10 '+(copen?'▾':'▸');};
-redraw();map.fitBounds(all,{padding:[50,50]});
+redraw();map.fitBounds(all,{padding:[50,50],maxZoom:11}); setTimeout(function(){map.invalidateSize();map.fitBounds(all,{padding:[50,50],maxZoom:11});},250);
 </script></body></html>
