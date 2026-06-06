@@ -67,5 +67,5 @@ candObjs.slice(0,10).forEach((o,i)=>{
  cl.appendChild(d);
 });
 let copen=true;document.getElementById('candhd').onclick=()=>{copen=!copen;cl.style.display=copen?'block':'none';document.querySelector('#candhd span').textContent='전파후보 Top 10 '+(copen?'▾':'▸');};
-redraw();function _refit(){map.invalidateSize();if(all.length)map.fitBounds(all,{padding:[50,50],maxZoom:11});}_refit();window.addEventListener('resize',_refit);setTimeout(_refit,300);
+redraw();map.setView([37.215,127.5],10);window.addEventListener('resize',function(){map.invalidateSize();});setTimeout(function(){map.invalidateSize();},300);
 </script></body></html>

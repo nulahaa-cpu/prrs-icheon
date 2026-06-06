@@ -95,5 +95,5 @@ function openLineage(lin){
  <div class="sec"><h3>농장 (${c.n})</h3><div style="font-size:11.5px;color:#46505e">${c.farms.join(', ')}</div></div>
  <div class="note">읍·면 근사 위치 기반. n이 작은 계통은 공통점 해석에 주의.</div>`);
 }
-show(null);function _refit(){map.invalidateSize();if(allLL.length)map.fitBounds(allLL,{padding:[45,45],maxZoom:11});}_refit();window.addEventListener('resize',_refit);setTimeout(_refit,300);
+show(null);map.setView([37.215,127.5],10);window.addEventListener('resize',function(){map.invalidateSize();});setTimeout(function(){map.invalidateSize();},300);
 </script></body></html>
