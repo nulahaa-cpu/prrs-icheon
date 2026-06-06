@@ -67,5 +67,8 @@ candObjs.slice(0,10).forEach((o,i)=>{
  cl.appendChild(d);
 });
 let copen=true;document.getElementById('candhd').onclick=()=>{copen=!copen;cl.style.display=copen?'block':'none';document.querySelector('#candhd span').textContent='전파후보 Top 10 '+(copen?'▾':'▸');};
-redraw();map.setView([37.215,127.5],10);window.addEventListener('resize',function(){map.invalidateSize();});setTimeout(function(){map.invalidateSize();},300);
-</script></body></html>
+redraw();(function(){var SK='prrsmap_net';var sv=null;try{sv=JSON.parse(localStorage.getItem(SK));}catch(e){}if(sv&&sv.c){map.setView(sv.c,sv.z);}else{map.setView([37.215,127.5],10);}map.on('moveend',function(){try{localStorage.setItem(SK,JSON.stringify({c:[map.getCenter().lat,map.getCenter().lng],z:map.getZoom()}));}catch(e){}});})();window.addEventListener('resize',function(){map.invalidateSize();});setTimeout(function(){map.invalidateSize();},300);
+</script><button id="pt"></button>
+<style>#pt{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:1100;background:#1F3864;color:#fff;border:none;border-radius:20px;padding:9px 16px;font-size:13px;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.25);cursor:pointer}body.hidepanels .box{display:none!important}</style>
+<script>(function(){var b=document.getElementById('pt');function set(){b.textContent=document.body.classList.contains('hidepanels')?'ℹ 정보·범례 보기':'✕ 패널 숨기기';}b.onclick=function(){document.body.classList.toggle('hidepanels');set();};if(window.innerWidth<=640)document.body.classList.add('hidepanels');set();})();</script>
+</body></html>
