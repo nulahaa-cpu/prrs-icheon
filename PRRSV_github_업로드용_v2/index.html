@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PRRSV 통합 분석 대시보드</title>
+<style>:root{--ink:#1f2733;--mut:#6b7686;--line:#e3e6ea;--accent:#1F3864}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,'Segoe UI','Malgun Gothic',Arial,sans-serif;background:#eef0f3;color:var(--ink)}
+header{background:#fff;border-bottom:1px solid var(--line);padding:14px 18px 0}
+h1{font-size:18px;margin:0 0 3px}.sub{color:var(--mut);font-size:12px;margin:0 0 10px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{padding:9px 15px;border:1px solid var(--line);border-bottom:none;border-radius:9px 9px 0 0;background:#f1f3f6;color:var(--mut);font-size:12.5px;font-weight:600;cursor:pointer}
+.tab.on{background:#fff;color:var(--accent);border-color:var(--accent);border-bottom:2px solid #fff;margin-bottom:-1px}
+.tab span{display:block;font-size:9.5px;color:var(--mut);font-weight:400;margin-top:2px}.tab.on span{color:var(--accent)}
+iframe{width:100%;height:calc(100vh - 92px);border:none;background:#f4f5f7;display:none}iframe.on{display:block}</style></head><body>
+<header><h1>PRRSV 통합 분석 대시보드</h1><p class="sub">경기 이천·여주 양돈장 · 유입경로 추정 → 계통수 검증 → 지리·설문 분포 → 계통별 하위 계통수</p>
+<div class="tabs"><div class="tab on" data-f="0">① 추정 유입경로<span>2층 모델·AHP·차단방역</span></div>
+<div class="tab " data-f="1">② 계통수 검증<span>실제 ORF5 트리 vs K-means</span></div>
+<div class="tab " data-f="2">③ 계통 × 지리 + 설문<span>점 클릭=설문 · 계통 클릭=공통점</span></div>
+<div class="tab " data-f="3">④ 계통별 하위 계통수<span>NA73·JBNU-22 sub-tree 해석</span></div>
+</div></header>
+<iframe class="on" src="dash_routes.html"></iframe>
+<iframe class="" src="dash_tree.html"></iframe>
+<iframe class="" src="dash_map.html"></iframe>
+<iframe class="" src="dash_subtree.html"></iframe>
+
+<script>const tabs=[...document.querySelectorAll('.tab')],fr=[...document.querySelectorAll('iframe')];
+tabs.forEach(t=>t.onclick=()=>{const i=+t.dataset.f;tabs.forEach(x=>x.classList.toggle('on',x===t));fr.forEach((f,j)=>f.classList.toggle('on',j===i))});</script></body></html>
