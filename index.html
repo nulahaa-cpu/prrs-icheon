@@ -1,34 +1,28 @@
 <!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PRRSV 통합 분석 대시보드 — 경기 이천·여주</title>
-<style>
-:root{--ink:#1f2733;--mut:#6b7686;--line:#e3e6ea;--accent:#1F3864}
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,'Segoe UI','Malgun Gothic',Arial,sans-serif;background:#eef0f3;color:var(--ink)}
-header{background:#fff;border-bottom:1px solid var(--line);padding:16px 20px 0}
-h1{font-size:19px;margin:0 0 3px}.sub{color:var(--mut);font-size:12.5px;margin:0 0 12px}
-.tabs{display:flex;gap:4px}
-.tab{padding:10px 18px;border:1px solid var(--line);border-bottom:none;border-radius:9px 9px 0 0;background:#f1f3f6;color:var(--mut);font-size:13.5px;font-weight:600;cursor:pointer}
-.tab.on{background:#fff;color:var(--accent);border-color:var(--accent);border-bottom:2px solid #fff;margin-bottom:-1px}
-.tab span{display:block;font-size:10.5px;color:var(--mut);font-weight:400;margin-top:2px}
-.tab.on span{color:var(--accent)}
-.frames{position:relative}
-iframe{width:100%;height:calc(100vh - 96px);border:none;background:#f4f5f7;display:none}
-iframe.on{display:block}
-</style></head><body>
-<header>
-<h1>PRRSV 통합 분석 대시보드</h1>
-<p class="sub">경기 이천·여주 양돈장 · PCR/유전자분석 + 현지 차단방역 설문 · 유입경로 추정 → 계통수 검증 → 지리 분포를 한 곳에서</p>
-<div class="tabs">
-<div class="tab on" data-f="0">① 추정 유입경로<span>2층 모델·AHP·차단방역</span></div>
-<div class="tab" data-f="1">② 계통수 검증<span>실제 ORF5 트리 vs K-means</span></div>
-<div class="tab" data-f="2">③ 계통 × 지리 분포<span>수평전파 지도</span></div>
+<title>PRRSV 통합 분석 대시보드</title>
+<style>:root{--ink:#1f2733;--mut:#6b7686;--line:#e3e6ea;--accent:#1F3864}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;font-family:-apple-system,'Segoe UI','Malgun Gothic',Arial,sans-serif;background:#eef0f3;color:var(--ink);display:flex;flex-direction:column;height:100vh;height:100dvh}
+header{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);padding:12px 14px 0}
+h1{font-size:17px;margin:0 0 2px}.sub{color:var(--mut);font-size:11.5px;margin:0 0 8px}
+.tabs{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px}
+.tab{flex:0 0 auto;white-space:nowrap;padding:8px 13px;border:1px solid var(--line);border-bottom:none;border-radius:9px 9px 0 0;background:#f1f3f6;color:var(--mut);font-size:12.5px;font-weight:600;cursor:pointer}
+.tab.on{background:#fff;color:var(--accent);border-color:var(--accent)}
+.tab span{display:block;font-size:9.5px;color:var(--mut);font-weight:400;margin-top:2px}.tab.on span{color:var(--accent)}
+.frames{flex:1 1 auto;position:relative;min-height:0}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:#f4f5f7;display:none}iframe.on{display:block}</style></head><body>
+<header><h1>PRRSV 통합 분석 대시보드</h1><p class="sub">경기 이천·여주 · 유입경로 → 계통수 → 지리·설문 → 하위계통수 → 전파망 &nbsp;<span style="color:#aab">(탭을 좌우로 밀어보세요)</span></p>
+<div class="tabs"><div class="tab on" data-f="0">① 추정 유입경로<span>2층 모델·AHP·차단방역</span></div>
+<div class="tab " data-f="1">② 계통수 검증<span>ORF5 트리 vs K-means</span></div>
+<div class="tab " data-f="2">③ 계통 × 지리 + 설문<span>점 클릭=설문 · 계통 클릭=공통점</span></div>
+<div class="tab " data-f="3">④ 계통별 하위 계통수<span>NA73·JBNU-22 sub-tree</span></div>
+<div class="tab " data-f="4">⑤ 차량동선 전파망<span>허브·전파후보 (데모)</span></div>
+</div></header>
+<div class="frames"><iframe class="on" src="dash_routes.html"></iframe>
+<iframe class="" src="dash_tree.html"></iframe>
+<iframe class="" src="dash_map.html"></iframe>
+<iframe class="" src="dash_subtree.html"></iframe>
+<iframe class="" src="dash_network.html"></iframe>
 </div>
-</header>
-<div class="frames">
-<iframe class="on" src="dash_routes.html"></iframe>
-<iframe src="dash_tree.html"></iframe>
-<iframe src="dash_map.html"></iframe>
-</div>
-<script>
-const tabs=[...document.querySelectorAll('.tab')],fr=[...document.querySelectorAll('iframe')];
-tabs.forEach(t=>t.onclick=()=>{const i=+t.dataset.f;tabs.forEach(x=>x.classList.toggle('on',x===t));fr.forEach((f,j)=>f.classList.toggle('on',j===i))});
-</script></body></html>
+<script>const tabs=[...document.querySelectorAll('.tab')],fr=[...document.querySelectorAll('iframe')];
+tabs.forEach(t=>t.onclick=()=>{const i=+t.dataset.f;tabs.forEach(x=>x.classList.toggle('on',x===t));fr.forEach((f,j)=>f.classList.toggle('on',j===i));t.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});});</script></body></html>
