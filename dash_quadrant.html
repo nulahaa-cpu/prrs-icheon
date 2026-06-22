@@ -66,7 +66,7 @@
 <body>
 <div class="wrap">
   <h1>PRRSV 농장 위험도 사분면 분석 및 진단</h1>
-  <p class="sub">발생경로와 차단방역 수준을 가중 합산한 복합 위험도 기반. <strong>(우측 상단일수록 취약)</strong></p>
+  <p class="sub">발생경로와 차단방역 수준을 가중 합산한 복합 위험도 기반. <strong>(우측 상단일수록 취약)</strong> <span style="color:#9a6a12; font-weight:600;">· 노란 별 표식 = 최저위험 기준농장</span></p>
 
   <div class="controls">
     <b>기준점(원점) 설정:</b>
@@ -124,6 +124,52 @@
       return {rank, pct};
   }
 
+  // === 최저위험 기준농장 & 격차분석 ===
+  // 기준농장 = 내·외부 위험 합산이 가장 낮은(가장 안전한) 농장
+  const benchmark = data.reduce((a,b) => (b.extRisk + b.intRisk) < (a.extRisk + a.intRisk) ? b : a);
+  const LV_NUM = {'이상':0, 'low':1, 'medium':2, 'high':3};
+  const LV_KR  = {'이상':'해당없음', 'low':'낮음', 'medium':'중간', 'high':'높음'};
+  function rangeOf(key){
+      const vs = data.map(d => d[key]).filter(v => typeof v === 'number');
+      return (Math.max(...vs) - Math.min(...vs)) || 1;
+  }
+  const RANGES = {extRisk:rangeOf('extRisk'), intRisk:rangeOf('intRisk'), ext_bio:rangeOf('ext_bio'), int_bio:rangeOf('int_bio'), nearby:rangeOf('nearby')};
+
+  // 클릭농장 vs 기준농장의 항목별 격차(클릭농장이 더 나쁠수록 raw/norm 큼)
+  function gapFactors(d){
+      const f = [];
+      const numF = (key,label,better,fmt,action) => {
+          const cur = d[key], tgt = benchmark[key];
+          if(typeof cur !== 'number' || typeof tgt !== 'number') return;
+          const diff = better === 'low' ? cur - tgt : tgt - cur;
+          f.push({label, cur:fmt(cur), tgt:fmt(tgt), raw:Math.max(0,diff), norm:Math.max(0,diff)/RANGES[key], action});
+      };
+      const catF = (key,label,action) => {
+          const cur = LV_NUM[d[key]], tgt = LV_NUM[benchmark[key]];
+          if(cur == null || tgt == null) return;
+          const diff = cur - tgt;
+          f.push({label, cur:LV_KR[d[key]], tgt:LV_KR[benchmark[key]], raw:Math.max(0,diff), norm:Math.max(0,diff)/3, action});
+      };
+      numF('ext_bio','외부 차단방역 수준','high', v=>v.toFixed(0)+'점', '외부 울타리·방역실·차량소독 등 외부 차단방역을 기준농장 수준으로 강화');
+      numF('int_bio','내부 차단방역 수준','high', v=>v.toFixed(0)+'점', '돈사별 전용 장비·장화 교체·올인올아웃 등 내부 차단방역 강화');
+      numF('nearby','3km 인접 농장 수','low', v=>v+'개', '입지는 변경 불가 — 사료·출하 차량 동선분리 및 외부 통제벽으로 교차오염 차단');
+      catF('gilt','후보돈 도입 위험', '후보돈 자가생산 또는 입식 전 격리·검사(2~4주) SOP 도입');
+      catF('veh','차량 출입 위험', '출하·사료 차량 진입 통제 및 거점소독시설 경유 의무화');
+      catF('resid','내부 잔존바이러스', '전체 두수 청정화(검사·도태)와 올인올아웃으로 순환고리 차단');
+      return f;
+  }
+
+  // 격차 막대 (val: 위험 격차, range: 전체 농장 분포폭)
+  function gapBar(label, val, range, color){
+      const pct = Math.min(100, range ? val/range*100 : 0);
+      return `<div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span>${label}</span><span style="font-weight:700;color:${color}">+${val.toFixed(1)}</span></div>
+        <div style="height:8px;background:#eef1f4;border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;"></div></div>
+      </div>`;
+  }
+
   function draw() {
     const w = svg.clientWidth;
     const h = svg.clientHeight;
@@ -169,10 +215,10 @@
     
     // Labels
     const labels = [
-      {x: ox+10, y: oy-10, t: '1사분면 (외부/내부 모두 취약)', c: '#a8322a', a:'start'},
-      {x: ox-10, y: oy-10, t: '2사분면 (내부 잔존/순환 위험)', c: '#9a6a12', a:'end'},
-      {x: ox-10, y: oy+20, t: '3사분면 (상대적 안전구역)', c: '#1e7e34', a:'end'},
-      {x: ox+10, y: oy+20, t: '4사분면 (외부 유입 위험 높음)', c: '#9a6a12', a:'start'}
+      {x: w-padding-6, y: padding+14,   t: '1사분면 (외부/내부 모두 취약)', c: '#a8322a', a:'end'},   // 우상단 구석
+      {x: padding+6,   y: padding+14,   t: '2사분면 (내부 잔존/순환 위험)', c: '#9a6a12', a:'start'}, // 좌상단 구석
+      {x: padding+6,   y: h-padding-6,  t: '3사분면 (상대적 안전구역)',     c: '#1e7e34', a:'start'}, // 좌하단 구석
+      {x: w-padding-6, y: h-padding-6,  t: '4사분면 (외부 유입 위험 높음)', c: '#9a6a12', a:'end'}     // 우하단 구석
     ];
     labels.forEach(l => {
         const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -228,7 +274,42 @@
       };
       dot.onmouseout = () => tt.style.opacity = 0;
       g.appendChild(dot);
-      
+
+      // 기준농장(최저위험) 특별 표식: 금색 링 + 별 마커 + 라벨
+      if(d.fid === benchmark.fid) {
+          const baseR = (d.fid === selectedId ? 9 : 6);
+          const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          ring.setAttribute('cx', cx); ring.setAttribute('cy', cy);
+          ring.setAttribute('r', baseR + 5);
+          ring.setAttribute('fill', 'none');
+          ring.setAttribute('stroke', '#E0A800');
+          ring.setAttribute('stroke-width', '2.5');
+          g.appendChild(ring);
+
+          const sy = cy - (baseR + 16);
+          let pts = '';
+          for(let i = 0; i < 10; i++){
+              const ang = (-90 + i * 36) * Math.PI / 180;
+              const rr = i % 2 ? 2.8 : 7;
+              pts += (cx + rr * Math.cos(ang)) + ',' + (sy + rr * Math.sin(ang)) + ' ';
+          }
+          const star = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+          star.setAttribute('points', pts.trim());
+          star.setAttribute('fill', '#E0A800');
+          star.setAttribute('stroke', '#fff');
+          star.setAttribute('stroke-width', '1');
+          g.appendChild(star);
+
+          const lab = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          lab.setAttribute('x', cx); lab.setAttribute('y', sy - 9);
+          lab.setAttribute('text-anchor', 'middle');
+          lab.setAttribute('font-size', '10px');
+          lab.setAttribute('font-weight', 'bold');
+          lab.setAttribute('fill', '#9a6a12');
+          lab.textContent = '기준농장';
+          g.appendChild(lab);
+      }
+
       if(d.fid === selectedId) {
           const dt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           dt.setAttribute('x', cx); dt.setAttribute('y', cy - 14);
@@ -256,7 +337,13 @@
       
       const qInfo = getQuad(d.extRisk, d.intRisk);
       const sRank = getSafeRank(d);
-      
+
+      // 최저위험 기준농장 대비 격차
+      const isBench = d.fid === benchmark.fid;
+      const extGap = Math.max(0, d.extRisk - benchmark.extRisk);
+      const intGap = Math.max(0, d.intRisk - benchmark.intRisk);
+      const facs = gapFactors(d).filter(x => x.raw > 0).sort((a,b) => b.norm - a.norm);
+
       const fb = document.getElementById('feedback');
       
       // Determine Lineage insight
@@ -284,7 +371,37 @@
                 <div class="box" style="flex:1; text-align:center;"><b>내부 위험</b><br><span style="font-size:20px; color:${d.intRisk > originY ? '#d9534f' : '#28a745'}">${d.intRisk.toFixed(1)}</span></div>
             </div>
         </div>
-        
+
+        ${ isBench ? `
+        <div class="f-section">
+            <h3>최저위험 기준 농장</h3>
+            <div class="box" style="border-left:3px solid #1e7e34;">
+                이 농장이 바로 <b>내·외부 위험 합산이 가장 낮은 기준 농장</b>입니다.<br>
+                현재 방역 수준(외부 ${d.extRisk.toFixed(1)} · 내부 ${d.intRisk.toFixed(1)})을 유지·관리하세요.
+            </div>
+        </div>` : `
+        <div class="f-section">
+            <h3>최저위험 농장 대비 격차 분석</h3>
+            <div class="box">
+                <div style="font-size:13px; margin-bottom:10px;">기준농장 <b>${benchmark.name}</b> 대비 (외부 ${benchmark.extRisk.toFixed(1)} · 내부 ${benchmark.intRisk.toFixed(1)})</div>
+                ${gapBar('외부 위험 격차', extGap, RANGES.extRisk, '#C6531B')}
+                ${gapBar('내부 위험 격차', intGap, RANGES.intRisk, '#9a6a12')}
+                <div style="margin-top:12px; padding:10px; background:#fdeaea; border-radius:6px; font-size:13px;">
+                    <b>가장 큰 차이:</b> ${facs.length ? `${facs[0].label} <span style="color:#a8322a; font-weight:600;">(우리 ${facs[0].cur} → 기준 ${facs[0].tgt})</span>` : '뚜렷한 격차 없음 (이미 기준에 근접)'}
+                </div>
+            </div>
+        </div>
+        ${ facs.length ? `
+        <div class="f-section">
+            <h3>기준농장 수준 도달 개선 과제 (우선순위)</h3>
+            ${facs.slice(0,3).map((x,i) => `
+            <div class="box action" style="margin-bottom:8px;">
+                <b>${i+1}. ${x.label}</b> <span style="font-size:12px; color:#6b7686;">현재 ${x.cur} → 목표 ${x.tgt}</span><br>
+                <span style="font-size:13px;">${x.action}</span>
+            </div>`).join('')}
+        </div>` : '' }
+        `}
+
         <div class="f-section">
             <h3>주요 취약 요소 (Factor)</h3>
             <div class="box">
@@ -310,6 +427,11 @@
                   qInfo.q === 3 ? '현재 방역 수준 유지 및 후보돈 순치 SOP 강화.' : 
                   '3km 내 인접 농장으로부터의 교차오염 대비. 사료차/출하차 외부 통제벽 설치 시급.'}
             </div>
+        </div>
+
+        <div class="f-section">
+            <h3>경제적 효과</h3>
+            <div class="box">추적 연구 필요</div>
         </div>
       `;
       fb.innerHTML = html;
